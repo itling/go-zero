@@ -37,6 +37,9 @@ var New string
 //go:embed tpl/model.tpl
 var ModelCustom string
 
+//go:embed tpl/model-dto.tpl
+var ModelDTO string
+
 // ModelGen defines a template for model
 var ModelGen = fmt.Sprintf(`%s
 

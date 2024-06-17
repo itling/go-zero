@@ -23,6 +23,7 @@ const (
 	insertTemplateMethodFile              = "interface-insert.tpl"
 	modelGenTemplateFile                  = "model-gen.tpl"
 	modelCustomTemplateFile               = "model.tpl"
+	modelDTOTemplateFile                  = "model-dto.tpl"
 	modelNewTemplateFile                  = "model-new.tpl"
 	tableNameTemplateFile                 = "table-name.tpl"
 	tagTemplateFile                       = "tag.tpl"

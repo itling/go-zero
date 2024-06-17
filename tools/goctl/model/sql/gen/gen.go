@@ -52,6 +52,7 @@ type (
 	codeTuple struct {
 		modelCode       string
 		modelCustomCode string
+		modelDTOCode    string
 	}
 )
 
@@ -135,10 +136,15 @@ func (g *defaultGenerator) StartFromInformationSchema(tables map[string]*model.T
 		if err != nil {
 			return err
 		}
+		dtoCode, err := g.genModelDTO(*table, withCache)
+		if err != nil {
+			return err
+		}
 
 		m[table.Name.Source()] = &codeTuple{
 			modelCode:       code,
 			modelCustomCode: customCode,
+			modelDTOCode:    dtoCode,
 		}
 	}
 
@@ -180,6 +186,17 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 			continue
 		}
 		err = ioutil.WriteFile(filename, []byte(codes.modelCustomCode), os.ModePerm)
+		if err != nil {
+			return err
+		}
+
+		name = util.SafeString(modelFilename) + "_dto.go"
+		filename = filepath.Join(dirAbs, name)
+		if pathx.FileExists(filename) {
+			g.Warning("%s already exists, ignored.", name)
+			continue
+		}
+		err = ioutil.WriteFile(filename, []byte(codes.modelDTOCode), os.ModePerm)
 		if err != nil {
 			return err
 		}
@@ -359,6 +376,26 @@ func (g *defaultGenerator) genModelCustom(in parser.Table, withCache bool) (stri
 		"withCache":             withCache,
 		"upperStartCamelObject": in.Name.ToCamel(),
 		"lowerStartCamelObject": stringx.From(in.Name.ToCamel()).Untitle(),
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return output.String(), nil
+}
+
+func (g *defaultGenerator) genModelDTO(in parser.Table, withCache bool) (string, error) {
+	text, err := pathx.LoadTemplate(category, modelDTOTemplateFile, template.ModelDTO)
+	if err != nil {
+		return "", err
+	}
+
+	t := util.With("model-dto").
+		Parse(text).
+		GoFmt(true)
+	output, err := t.Execute(map[string]interface{}{
+		"pkg":                   g.pkg,
+		"upperStartCamelObject": in.Name.ToCamel(),
 	})
 	if err != nil {
 		return "", err
